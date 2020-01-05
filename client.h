@@ -36,7 +36,8 @@ void set_passive(int state);
 void exec_ciao();
 void exec_dir();
 
-struct config{
+struct config
+{
   int debug;
   int control_fd;
   int passive;
