@@ -336,19 +336,25 @@ void exec_dir(){
     return;
   }
   char* buffer = malloc(SIZE_LINE_MAX);
-  char* filePart = malloc(MAX_FILE_PART_SIZE);
+  char filePart;
   int read_char;
+  clock_t start, end;
+  double cpu_time_used;
+  int i = 0;
   int ftp_fd = set_serv("LIST\n");
   read_char = read(config.control_fd , buffer, SIZE_LINE_MAX);
   if(config.debug){
     printf("%s\n",buffer );
   }
 
-  do {
-    read_char = read(ftp_fd , filePart, MAX_FILE_PART_SIZE);
-    filePart[read_char]='\0';
-    printf("%s",filePart);
-  } while(read_char >= MAX_FILE_PART_SIZE);
+  start = clock();
+  while ((read_char = read(ftp_fd , &filePart, 1))==1) {
+    printf("%c",filePart);
+    i++;
+  }
+  end = clock();
+  cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+  printf("Transfered %d bytes in %.2f second(s)\n",i,cpu_time_used);
 
   read_char = read(config.control_fd , buffer, SIZE_LINE_MAX);
   buffer[read_char+1]='\0';
@@ -363,8 +369,11 @@ void exec_show(char* param){
     return;
   }
   char* buffer = malloc(SIZE_LINE_MAX);
-  char* filePart = malloc(MAX_FILE_PART_SIZE);
+  char filePart;
   int read_char;
+  clock_t start, end;
+  double cpu_time_used;
+  int i = 0;
   buffer[0]='\0';
   strcat(buffer,"RETR ");
   strcat(buffer,param);
@@ -375,11 +384,14 @@ void exec_show(char* param){
     printf("%s\n",buffer );
   }
 
-  do {
-    read_char = read(ftp_fd , filePart, MAX_FILE_PART_SIZE);
-    filePart[read_char]='\0';
-    printf("%s",filePart);
-  } while(read_char >= MAX_FILE_PART_SIZE-1);
+  start = clock();
+  while ((read_char = read(ftp_fd , &filePart, 1))==1) {
+    printf("%c",filePart);
+    i++;
+  }
+  end = clock();
+  cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+  printf("Transfered %d bytes in %.2f second(s)\n",i,cpu_time_used);
 
   read_char = read(config.control_fd , buffer, SIZE_LINE_MAX);
   buffer[read_char+1]='\0';
