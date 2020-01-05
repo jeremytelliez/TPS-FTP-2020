@@ -21,12 +21,17 @@
 
 void exec_command(char* choice);
 void print_help();
-void set_passive(int state);
+
 void exec_show(char* param);
 void exec_open(char* param);
+
 int set_serv_passive(char* cmd);
 int set_serv_active(char* cmd);
 int set_serv(char* cmd);
+
+void set_debug(int state);
+void set_passive(int state);
+
 void exec_ciao();
 void exec_dir();
 

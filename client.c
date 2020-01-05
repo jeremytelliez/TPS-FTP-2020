@@ -39,6 +39,10 @@ void exec_command(char* choice){
     set_passive(1);
   else if(!strncmp(choice,"passiveoff\n",SIZE_LINE_MAX))
     set_passive(0);
+  else if(!strncmp(choice,"debugon\n",SIZE_LINE_MAX))
+    set_debug(1);
+  else if(!strncmp(choice,"debugoff\n",SIZE_LINE_MAX))
+    set_debug(0);
   else if(!strncmp(choice,"exit\n",SIZE_LINE_MAX))
     printf("Exiting...\n");
 }
@@ -96,10 +100,12 @@ void exec_open(char* param){
       printf("\nConnection Failed \n");
       exit(EXIT_FAILURE);
   }
-  //printf("Connected\n");
+  if(config.debug){
+    printf("%s ",buffer );
+  }
   read( client_fd , buffer, SIZE_LINE_MAX);
   buffer = strtok(buffer," ");
-  printf("%s ",buffer );
+
   if(buffer[0] == '2' && buffer[1] == '2' && buffer[2] == '0'){
     printf("Enter login and password \n");
     printf("Enter login : ");
@@ -115,7 +121,9 @@ void exec_open(char* param){
     free(response);
 
     read( client_fd , buffer, SIZE_LINE_MAX);
-    printf("%s ",buffer );
+    if(config.debug){
+      printf("%s ",buffer );
+    }
     if(buffer[0] == '3'){
       printf("Enter password : ");
       fgets(buffer,SIZE_LINE_MAX,stdin);
@@ -129,7 +137,9 @@ void exec_open(char* param){
       send(client_fd , response , strlen(response) , 0 );
       free(response);
       read( client_fd , buffer, SIZE_LINE_MAX);
-      printf("%s ",buffer );
+      if(config.debug){
+        printf("%s ",buffer );
+      }
 
       if(buffer[0] == '2' && buffer[1]== '3'){
         // Enregistre le fd du socket dans la configuration
@@ -146,6 +156,10 @@ void exec_open(char* param){
 }
 
 void exec_ciao(){
+  if(!config.control_fd){
+    printf("Not connected !");
+    return;
+  }
   char* buffer = malloc(SIZE_LINE_MAX);
   char* response = "QUIT\n";
   int read_char;
@@ -153,7 +167,9 @@ void exec_ciao(){
   send(config.control_fd , response , strlen(response) , 0 );
   read_char = read(config.control_fd , buffer, SIZE_LINE_MAX);
   buffer[read_char+1]='\0';
-  printf("%s\n",buffer);
+  if(config.debug){
+    printf("%s\n",buffer );
+  }
   config.control_fd = 0;
 }
 
@@ -182,7 +198,9 @@ int set_serv_passive(char* cmd){
   read_char = read(config.control_fd , buffer, SIZE_LINE_MAX);
   buffer[read_char+1]='\0';
 
-  printf("%s\n",buffer);
+  if(config.debug){
+    printf("%s\n",buffer );
+  }
 
   buffer = strtok(buffer,"(");
 
@@ -195,9 +213,6 @@ int set_serv_passive(char* cmd){
   sprintf(ip_data,"%s.%s.%s.%s",ip_data_part[3],ip_data_part[2],ip_data_part[1],ip_data_part[0]);
   port_data+=(atoi(strtok(NULL,","))*256);
   port_data+=(atoi(strtok(NULL,")")));
-
-  printf("ip = %s\n",ip_data);
-  printf("port = %d\n",port_data);
 
   //Assigne des options au file descriptor
   serv_address.sin_family = AF_INET;
@@ -275,13 +290,15 @@ int set_serv_active(char* cmd){
   strcat(response,temp);
   sprintf(temp,"%d\n",(PORTDATA)&0x00ff);
   strcat(response,temp);
-  printf("%s\n",response);
+  printf("--->%s\n",response);
   send(config.control_fd , response , strlen(response) , 0 );
 
 
   read_char = read(config.control_fd , buffer, SIZE_LINE_MAX);
   buffer[read_char+1]='\0';
-  printf("%s\n",buffer);
+  if(config.debug){
+    printf("%s\n",buffer );
+  }
 
   response[0]='\0';
   strcat(response, cmd);
@@ -323,7 +340,9 @@ void exec_dir(){
   int read_char;
   int ftp_fd = set_serv("LIST\n");
   read_char = read(config.control_fd , buffer, SIZE_LINE_MAX);
-  printf("%s\n",buffer);
+  if(config.debug){
+    printf("%s\n",buffer );
+  }
 
   do {
     read_char = read(ftp_fd , filePart, MAX_FILE_PART_SIZE);
@@ -333,7 +352,9 @@ void exec_dir(){
 
   read_char = read(config.control_fd , buffer, SIZE_LINE_MAX);
   buffer[read_char+1]='\0';
-  printf("%s\n",buffer);
+  if(config.debug){
+    printf("%s\n",buffer );
+  }
 }
 
 void exec_show(char* param){
@@ -350,7 +371,9 @@ void exec_show(char* param){
   strcat(buffer,"\n");
   int ftp_fd = set_serv(buffer);
   read_char = read(config.control_fd , buffer, SIZE_LINE_MAX);
-  printf("%s\n",buffer);
+  if(config.debug){
+    printf("%s\n",buffer );
+  }
 
   do {
     read_char = read(ftp_fd , filePart, MAX_FILE_PART_SIZE);
@@ -360,7 +383,9 @@ void exec_show(char* param){
 
   read_char = read(config.control_fd , buffer, SIZE_LINE_MAX);
   buffer[read_char+1]='\0';
-  printf("%s\n",buffer);
+  if(config.debug){
+    printf("%s\n",buffer );
+  }
 }
 
 void print_help(){
@@ -368,7 +393,7 @@ void print_help(){
   printf("open <@IP>      : Connect to a FTP server at IP\n");
   printf("dir             : Show the list of file in current dir\n");
   printf("debug(on|off)   : Activate or deactivate the printing of server response\n");
-  //printf("passive(on|off) : Activate or deactivate passive mode of FTP\n");
+  printf("passive(on|off) : Activate or deactivate passive mode of FTP\n");
   printf("show <FILE>     : Show the FILE content\n");
   //printf("get <FILE>     : Show the FILE content\n");
   //printf("send <FILE>     : Show the FILE content\n");
