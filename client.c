@@ -35,8 +35,32 @@ void exec_command(char* choice){
     exec_dir();
   else if(!strncmp(choice,"ciao\n",SIZE_LINE_MAX))
     exec_ciao();
+  else if(!strncmp(choice,"passiveon\n",SIZE_LINE_MAX))
+    set_passive(1);
+  else if(!strncmp(choice,"passiveoff\n",SIZE_LINE_MAX))
+    set_passive(0);
   else if(!strncmp(choice,"exit\n",SIZE_LINE_MAX))
     printf("Exiting...\n");
+}
+
+void set_passive(int state){
+  if(state){
+    config.passive = 1;
+    printf("Switched to passive mode\n");
+  } else {
+    config.passive = 0;
+    printf("Switched to active mode\n");
+  }
+}
+
+void set_debug(int state){
+  if(state){
+    config.debug = 1;
+    printf("Debug mode activated\n");
+  } else {
+    config.debug = 0;
+    printf("Debug mode deactivated\n");
+  }
 }
 
 void exec_open(char* param){
@@ -59,8 +83,6 @@ void exec_open(char* param){
   //Assigne des options au file descriptor
   serv_address.sin_family = AF_INET;
   serv_address.sin_port = htons(PORTCONT);
-
-  puts(param);
 
   if(inet_pton(AF_INET, param, &serv_address.sin_addr)<=0)
   {
@@ -132,16 +154,88 @@ void exec_ciao(){
   read_char = read(config.control_fd , buffer, SIZE_LINE_MAX);
   buffer[read_char+1]='\0';
   printf("%s\n",buffer);
+  config.control_fd = 0;
 }
 
-int set_serv(char* cmd){
+int set_serv_passive(char* cmd){
+  struct sockaddr_in serv_address;
+  int client_fd;
+  int read_char;
+  int port_data = 0;
+  char* ip_data = malloc(SIZE_LINE_MAX);
+  char* buffer = malloc(SIZE_LINE_MAX); // buffer de reception de message
+  char* response = malloc(SIZE_LINE_MAX); // buffer d'envoi de message
+  char** ip_data_part = malloc(4);
+
+  // Crée le file descriptor
+  if ((client_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
+  {
+      perror("socket failed");
+      exit(EXIT_FAILURE);
+  }
+
+  response[0] = '\0';
+  strcat(response,"PASV\n");
+  printf("--->%s",response);
+  send(config.control_fd , response , strlen(response) , 0 );
+
+  read_char = read(config.control_fd , buffer, SIZE_LINE_MAX);
+  buffer[read_char+1]='\0';
+
+  printf("%s\n",buffer);
+
+  buffer = strtok(buffer,"(");
+
+  for (int i = 3; i >= 0; i--) {
+    ip_data_part[i] = malloc(IP_OCTET_CHAR);
+    ip_data_part[i][0]='\0';
+    strcat(ip_data_part[i],strtok(NULL,","));
+  }
+
+  sprintf(ip_data,"%s.%s.%s.%s",ip_data_part[3],ip_data_part[2],ip_data_part[1],ip_data_part[0]);
+  port_data+=(atoi(strtok(NULL,","))*256);
+  port_data+=(atoi(strtok(NULL,")")));
+
+  printf("ip = %s\n",ip_data);
+  printf("port = %d\n",port_data);
+
+  //Assigne des options au file descriptor
+  serv_address.sin_family = AF_INET;
+  serv_address.sin_port = htons(port_data);
+
+
+  if(inet_pton(AF_INET, ip_data, &serv_address.sin_addr)<=0)
+  {
+      printf("\nInvalid address/ Address not supported \n");
+      exit(EXIT_FAILURE);
+  }
+
+  //printf("Connection...\n");
+  if (connect(client_fd, (struct sockaddr *)&serv_address, sizeof(serv_address)) < 0)
+  {
+      printf("\nConnection Failed \n");
+      exit(EXIT_FAILURE);
+  }
+
+  response[0] = '\0';
+  sprintf(response,"%s",cmd);
+  printf("--->%s",response);
+  send(config.control_fd , response , strlen(response) , 0 );
+
+
+
+
+
+  return client_fd;
+}
+
+int set_serv_active(char* cmd){
   int read_char;
   int server_fd, temp_fd;
   int opt = 1;
   struct sockaddr_in address;
   int addrlen = sizeof(address);
   char* response = malloc(SIZE_LINE_MAX);
-  response[0] = '\0';
   char* buffer = malloc(SIZE_LINE_MAX);
 
   // Creating socket file descriptor
@@ -174,6 +268,7 @@ int set_serv(char* cmd){
         exit(EXIT_FAILURE);
   }
 
+  response[0] = '\0';
   strcat(response,"PORT 127,0,0,1,");
   char* temp = malloc(SIZE_LINE_MAX);
   sprintf(temp,"%d,",(PORTDATA>>8)&0x00ff);
@@ -197,8 +292,22 @@ int set_serv(char* cmd){
       perror("accept");
       exit(EXIT_FAILURE);
   }
-  read_char = read(config.control_fd , buffer, SIZE_LINE_MAX);
-  printf("%s\n",buffer);
+
+  return temp_fd;
+}
+
+int set_serv(char* cmd){
+  int temp_fd;
+  char* response = malloc(SIZE_LINE_MAX);
+  response[0] = '\0';
+
+  if(config.passive){
+    temp_fd = set_serv_passive(cmd);
+  } else {
+    temp_fd = set_serv_active(cmd);
+  }
+
+
 
   return temp_fd;
 }
@@ -213,6 +322,8 @@ void exec_dir(){
   char* filePart = malloc(MAX_FILE_PART_SIZE);
   int read_char;
   int ftp_fd = set_serv("LIST\n");
+  read_char = read(config.control_fd , buffer, SIZE_LINE_MAX);
+  printf("%s\n",buffer);
 
   do {
     read_char = read(ftp_fd , filePart, MAX_FILE_PART_SIZE);
@@ -238,6 +349,8 @@ void exec_show(char* param){
   strcat(buffer,param);
   strcat(buffer,"\n");
   int ftp_fd = set_serv(buffer);
+  read_char = read(config.control_fd , buffer, SIZE_LINE_MAX);
+  printf("%s\n",buffer);
 
   do {
     read_char = read(ftp_fd , filePart, MAX_FILE_PART_SIZE);
@@ -252,9 +365,13 @@ void exec_show(char* param){
 
 void print_help(){
   printf("List of command :\n");
-  printf("open <@IP>   : Connect to a FTP server at IP\n");
-  printf("dir          : Show the list of file in current dir\n");
-  printf("show <FILE>  : Show the FILE content\n");
-  printf("ciao         : Disconnect from server\n");
-  printf("exit         : Exit the program\n");
+  printf("open <@IP>      : Connect to a FTP server at IP\n");
+  printf("dir             : Show the list of file in current dir\n");
+  printf("debug(on|off)   : Activate or deactivate the printing of server response\n");
+  //printf("passive(on|off) : Activate or deactivate passive mode of FTP\n");
+  printf("show <FILE>     : Show the FILE content\n");
+  //printf("get <FILE>     : Show the FILE content\n");
+  //printf("send <FILE>     : Show the FILE content\n");
+  printf("ciao            : Disconnect from server\n");
+  printf("exit            : Exit the program\n");
 }

@@ -14,14 +14,19 @@
 
 #define SIZE_LINE_MAX 1024
 #define MAX_FILE_PART_SIZE 1024
+#define IP_OCTET_CHAR 4
 #define PORTDATA 34210
 #define PORTCONT 21
 
 
 void exec_command(char* choice);
 void print_help();
+void set_passive(int state);
 void exec_show(char* param);
 void exec_open(char* param);
+int set_serv_passive(char* cmd);
+int set_serv_active(char* cmd);
+int set_serv(char* cmd);
 void exec_ciao();
 void exec_dir();
 
