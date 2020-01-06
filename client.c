@@ -264,7 +264,7 @@ int set_serv_passive(char* cmd)
   if( (client_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
   {
       perror("socket failed");
-      exit(EXIT_FAILURE);
+      return 0;
   }
 
   response[0] = '\0';
@@ -300,14 +300,14 @@ int set_serv_passive(char* cmd)
   if( inet_pton(AF_INET, ip_data, &serv_address.sin_addr) <= 0)
   {
       printf("\nInvalid address/ Address not supported \n");
-      exit(EXIT_FAILURE);
+      return 0;
   }
 
   //printf("Connection...\n");
   if( connect(client_fd, (struct sockaddr *)&serv_address, sizeof(serv_address)) < 0)
   {
       printf("\nConnection Failed \n");
-      exit(EXIT_FAILURE);
+      return 0;
   }
 
   response[0] = '\0';
@@ -333,14 +333,14 @@ int set_serv_active(char* cmd)
   if( (server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
   {
       perror("socket failed");
-      exit(EXIT_FAILURE);
+      return 0;
   }
 
   // Forcefully attaching socket to the port 8080
   if( setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)))
   {
       perror("setsockopt");
-      exit(EXIT_FAILURE);
+      return 0;
   }
   address.sin_family = AF_INET;
   address.sin_addr.s_addr = INADDR_ANY;
@@ -350,13 +350,13 @@ int set_serv_active(char* cmd)
   if( bind(server_fd, (struct sockaddr *)&address, sizeof(address))<0)
   {
       perror("bind failed");
-      exit(EXIT_FAILURE);
+      return 0;
   }
 
   if( listen(server_fd, 3) < 0)
   {
         perror("listen");
-        exit(EXIT_FAILURE);
+        return 0;
   }
 
   response[0] = '\0';
@@ -381,7 +381,7 @@ int set_serv_active(char* cmd)
   if( (temp_fd = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0)
   {
       perror("accept");
-      exit(EXIT_FAILURE);
+      return 0;
   }
   config.portdata++;
 
@@ -419,6 +419,10 @@ void exec_dir()
   double cpu_time_used;
   int i = 0;
   int ftp_fd = set_serv("LIST\n");
+
+  if(ftp_fd == 0)
+    return;
+
   read_char = read(config.control_fd , buffer, SIZE_LINE_MAX);
   buffer[read_char] = '\0';
   if(config.debug)
@@ -462,6 +466,8 @@ void exec_show(char* param)
   strcat(buffer,"\n");
 
   int ftp_fd = set_serv(buffer);
+  if(ftp_fd == 0)
+    return;
 
   read_char = read( config.control_fd, buffer, SIZE_LINE_MAX);
   buffer[read_char]='\0';
