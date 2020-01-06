@@ -40,6 +40,21 @@ void exec_command(char* choice)
   else if( !strncmp( choice, "show",        SIZE_LINE_MAX))
     exec_show(strtok(NULL,"\n"));
 
+  else if( !strncmp( choice, "ren",        SIZE_LINE_MAX))
+    exec_ren(strtok(NULL,"\n"));
+
+  else if( !strncmp( choice, "del",        SIZE_LINE_MAX))
+    exec_del(strtok(NULL,"\n"));
+
+  else if( !strncmp( choice, "cd",        SIZE_LINE_MAX))
+    exec_cd(strtok(NULL,"\n"));
+
+  else if( !strncmp( choice, "mkd",        SIZE_LINE_MAX))
+    exec_mkd(strtok(NULL,"\n"));
+
+  else if( !strncmp( choice, "rmd",        SIZE_LINE_MAX))
+    exec_rmd(strtok(NULL,"\n"));
+
   else if( !strncmp( choice, "open",        SIZE_LINE_MAX))
     exec_open(strtok(NULL,"\n"));
 
@@ -455,16 +470,222 @@ void exec_show(char* param)
 }
 
 
+void exec_ren(char* param)
+{
+  if( !config.control_fd)
+  {
+    printf("Not Connected\n");
+    return;
+  }
+
+  char* buffer = malloc(SIZE_LINE_MAX);
+
+  buffer[0] = '\0';
+  strcat(buffer, "RNFR ");
+  param = strtok(param, " ");
+  strcat(buffer, param);
+  strcat(buffer, "\n");
+
+  if(config.debug)
+    printf("%s\n",buffer );
+
+  send(config.control_fd, buffer, strlen(buffer), 0);
+
+  buffer[0] = '\0';
+  strcat(buffer, "RNTO ");
+  param = strtok(NULL, "\n");
+  strcat(buffer, param);
+  strcat(buffer, "\n");
+
+  send(config.control_fd, buffer, strlen(buffer), 0);
+
+  if(config.debug)
+    printf("%s\n",buffer );
+
+
+
+
+  if(config.debug)
+    printf("%s\n",buffer );
+}
+
+
+void exec_del(char* param)
+{
+  if( !config.control_fd)
+  {
+    printf("Not Connected\n");
+    return;
+  }
+
+  char* buffer = malloc(SIZE_LINE_MAX);
+
+  buffer[0] = '\0';
+  strcat(buffer, "RNFR ");
+  param = strtok(param, " ");
+  strcat(buffer, param);
+  strcat(buffer, "\n");
+
+  if(config.debug)
+    printf("%s\n",buffer );
+
+  send(config.control_fd, buffer, strlen(buffer), 0);
+
+  buffer[0] = '\0';
+  strcat(buffer, "RNTO ");
+  param = strtok(NULL, "\n");
+  strcat(buffer, param);
+  strcat(buffer, "\n");
+
+  send(config.control_fd, buffer, strlen(buffer), 0);
+
+  if(config.debug)
+    printf("%s\n",buffer );
+
+
+
+
+  if(config.debug)
+    printf("%s\n",buffer );
+}
+
+
+void exec_cd(char* param)
+{
+  if( !config.control_fd)
+  {
+    printf("Not Connected\n");
+    return;
+  }
+
+  char* buffer = malloc(SIZE_LINE_MAX);
+
+  if(   param[0] == '.'
+     && param[1] == '.') // cd ..
+  {
+    buffer[0] = '\0';
+    strcat(buffer, "CDUP\n");
+
+    if(config.debug)
+      printf("%s\n",buffer );
+
+    send(config.control_fd, buffer, strlen(buffer), 0);
+  }
+
+  else    // cd <rep>
+  {
+    buffer[0] = '\0';
+    strcat(buffer, "CWD ");
+
+    param = strtok(param, " ");
+    strcat(buffer, param);
+    strcat(buffer, "\n");
+
+    if(config.debug)
+      printf("%s\n",buffer );
+
+    send(config.control_fd, buffer, strlen(buffer), 0);
+  }
+
+}
+
+
+void exec_mkd(char* param)
+{
+  if( !config.control_fd)
+  {
+    printf("Not Connected\n");
+    return;
+  }
+
+  char* buffer = malloc(SIZE_LINE_MAX);
+
+  buffer[0] = '\0';
+  strcat(buffer, "RNFR ");
+  param = strtok(param, " ");
+  strcat(buffer, param);
+  strcat(buffer, "\n");
+
+  if(config.debug)
+    printf("%s\n",buffer );
+
+  send(config.control_fd, buffer, strlen(buffer), 0);
+
+  buffer[0] = '\0';
+  strcat(buffer, "RNTO ");
+  param = strtok(NULL, "\n");
+  strcat(buffer, param);
+  strcat(buffer, "\n");
+
+  send(config.control_fd, buffer, strlen(buffer), 0);
+
+  if(config.debug)
+    printf("%s\n",buffer );
+
+
+
+
+  if(config.debug)
+    printf("%s\n",buffer );
+}
+
+
+void exec_rmd(char* param)
+{
+  if( !config.control_fd)
+  {
+    printf("Not Connected\n");
+    return;
+  }
+
+  char* buffer = malloc(SIZE_LINE_MAX);
+
+  buffer[0] = '\0';
+  strcat(buffer, "RNFR ");
+  param = strtok(param, " ");
+  strcat(buffer, param);
+  strcat(buffer, "\n");
+
+  if(config.debug)
+    printf("%s\n",buffer );
+
+  send(config.control_fd, buffer, strlen(buffer), 0);
+
+  buffer[0] = '\0';
+  strcat(buffer, "RNTO ");
+  param = strtok(NULL, "\n");
+  strcat(buffer, param);
+  strcat(buffer, "\n");
+
+  send(config.control_fd, buffer, strlen(buffer), 0);
+
+  if(config.debug)
+    printf("%s\n",buffer );
+
+
+
+
+  if(config.debug)
+    printf("%s\n",buffer );
+}
+
+
 void print_help()
 {
   printf("List of command :\n");
-  printf("open <@IP>      : Connect to a FTP server at IP\n");
-  printf("dir             : Show the list of file in current dir\n");
-  printf("debug(on|off)   : Activate or deactivate the printing of server response\n");
-  printf("passive(on|off) : Activate or deactivate passive mode of FTP\n");
-  printf("show <FILE>     : Show the FILE content\n");
+  printf("open <@IP>           : Connect to a FTP server at IP\n");
+  printf("dir                  : Show the list of file in current dir\n");
+  printf("debug(on|off)        : Activate or deactivate the printing of server response\n");
+  printf("passive(on|off)      : Activate or deactivate passive mode of FTP\n");
+  printf("show <FILE>          : Show the FILE content\n");
+  printf("ren <file1> <file2>  : Rename file\n");
+  printf("del <file>           : Delete file\n");
+  printf("cd <rep>             : move to distant directory\n");
+  printf("cd ..                : move to parent directory\n");
+  printf("mkd <rep>            : create distant directory\n");
+  printf("rmd <rep>            : delete distant directory\n");
   //printf("get <FILE>     : Show the FILE content\n");
   //printf("send <FILE>     : Show the FILE content\n");
-  printf("ciao            : Disconnect from server\n");
-  printf("exit            : Exit the program\n");
+  printf("ciao                 : Disconnect from server\n");
+  printf("exit                 : Exit the program\n");
 }
