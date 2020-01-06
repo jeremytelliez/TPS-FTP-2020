@@ -48,6 +48,7 @@ struct config
   int debug;
   int control_fd;
   int passive;
+  int portdata;
 };
 
 #endif // CLIENT_H
