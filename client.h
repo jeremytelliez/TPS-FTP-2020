@@ -36,6 +36,9 @@ void set_passive(int state);
 void exec_ciao();
 void exec_dir();
 
+void exec_get(char* param);
+void exec_send(char* param);
+
 void exec_ren(char* param);
 void exec_del(char* param);
 
