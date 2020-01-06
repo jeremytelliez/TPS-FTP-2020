@@ -518,6 +518,7 @@ void exec_get(char* param)
   if(config.debug)
     printf("%s\n",buffer );
 
+  /* On crée un fichier sur le PC dans le répertoire courant */
   FILE* local_fd;
   if( (local_fd = fopen(param, "w+")) == NULL)
   {
@@ -528,7 +529,8 @@ void exec_get(char* param)
   start = clock();
   while( (read_char = read(ftp_fd , &filePart, 1)) == 1)
   {
-    fprintf(local_fd, "%c", filePart);
+    fprintf(local_fd, "%c", filePart); /* On écrit le contenu f_serv -> f_PC */
+
     i++;
   }
   end = clock();
@@ -570,6 +572,7 @@ void exec_send(char* param)
   if(config.debug)
     printf("%s\n",buffer );
 
+  /* Ouverture du fichier local dans le répertoire courant en lecture seule */
   FILE* local_fd;
   if( (local_fd = fopen(param, "r")) == NULL)
   {
@@ -580,7 +583,7 @@ void exec_send(char* param)
   start = clock();
   while( (read_char = fread(&filePart, 1, 1, local_fd)) == 1)
   {
-    send(ftp_fd, &filePart, 1, 0);
+    send(ftp_fd, &filePart, 1, 0); /* Ecriture sur le serveur local */
     i++;
   }
   close(ftp_fd);
@@ -606,6 +609,7 @@ void exec_ren(char* param)
 
   char* buffer = malloc(SIZE_LINE_MAX);
 
+  /* RNFR + fichier à renommer */
   buffer[0] = '\0';
   strcat(buffer, "RNFR ");
   param = strtok(param, " ");
@@ -627,6 +631,7 @@ void exec_ren(char* param)
     printf("%s\n",response );
 
 
+  /* RNTO + nom fichier renommé */
   buffer[0] = '\0';
   strcat(buffer, "RNTO ");
   param = strtok(NULL, "\n");
@@ -658,6 +663,7 @@ void exec_del(char* param)
 
   char* buffer = malloc(SIZE_LINE_MAX);
 
+  /* DELE + nom fichier */
   buffer[0] = '\0';
   strcat(buffer, "DELE ");
   param = strtok(param, " ");
@@ -739,6 +745,7 @@ void exec_mkd(char* param)
 
   char* buffer = malloc(SIZE_LINE_MAX);
 
+  /* MKD + nom répertoire */
   buffer[0] = '\0';
   strcat(buffer, "MKD ");
 
@@ -772,6 +779,7 @@ void exec_rmd(char* param)
 
   char* buffer = malloc(SIZE_LINE_MAX);
 
+  /* RMD + nom répertoire à supprimer */
   buffer[0] = '\0';
   strcat(buffer, "RMD ");
 
