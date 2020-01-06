@@ -294,7 +294,7 @@ int set_serv_passive(char* cmd)
   if( inet_pton(AF_INET, ip_data, &serv_address.sin_addr) <= 0)
   {
       printf("\nInvalid address/ Address not supported \n");
-      return;
+      return 0;
   }
 
   //printf("Connection...\n");
