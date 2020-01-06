@@ -202,7 +202,7 @@ void exec_ciao()
 {
   if( !config.control_fd)
   {
-    printf("Not connected !");
+    printf("Not connected !\n");
     return;
   }
   char* buffer = malloc(SIZE_LINE_MAX);
@@ -391,6 +391,7 @@ void exec_dir()
   int i = 0;
   int ftp_fd = set_serv("LIST\n");
   read_char = read(config.control_fd , buffer, SIZE_LINE_MAX);
+  buffer[read_char+1] = '\0';
   if(config.debug)
     printf("%s\n",buffer );
 
@@ -429,10 +430,13 @@ void exec_show(char* param)
   strcat(buffer,"RETR ");
   strcat(buffer,param);
   strcat(buffer,"\n");
+
   int ftp_fd = set_serv(buffer);
-  read_char = read( config.control_fd, buffer, SIZE_LINE_MAX);
+
+  /*read_char = read( config.control_fd, buffer, SIZE_LINE_MAX);
+  buffer[read_char]='\0';
   if(config.debug)
-    printf("%s\n",buffer );
+    printf("%s\n",buffer );*/
 
   start = clock();
   while( (read_char = read(ftp_fd , &filePart, 1)) == 1)
