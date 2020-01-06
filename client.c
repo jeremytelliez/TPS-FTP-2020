@@ -597,7 +597,8 @@ void exec_mkd(char* param)
   char* buffer = malloc(SIZE_LINE_MAX);
 
   buffer[0] = '\0';
-  strcat(buffer, "RNFR ");
+  strcat(buffer, "MKD ");
+
   param = strtok(param, " ");
   strcat(buffer, param);
   strcat(buffer, "\n");
@@ -606,23 +607,6 @@ void exec_mkd(char* param)
     printf("%s\n",buffer );
 
   send(config.control_fd, buffer, strlen(buffer), 0);
-
-  buffer[0] = '\0';
-  strcat(buffer, "RNTO ");
-  param = strtok(NULL, "\n");
-  strcat(buffer, param);
-  strcat(buffer, "\n");
-
-  send(config.control_fd, buffer, strlen(buffer), 0);
-
-  if(config.debug)
-    printf("%s\n",buffer );
-
-
-
-
-  if(config.debug)
-    printf("%s\n",buffer );
 }
 
 
@@ -637,7 +621,8 @@ void exec_rmd(char* param)
   char* buffer = malloc(SIZE_LINE_MAX);
 
   buffer[0] = '\0';
-  strcat(buffer, "RNFR ");
+  strcat(buffer, "RMD ");
+
   param = strtok(param, " ");
   strcat(buffer, param);
   strcat(buffer, "\n");
@@ -646,23 +631,6 @@ void exec_rmd(char* param)
     printf("%s\n",buffer );
 
   send(config.control_fd, buffer, strlen(buffer), 0);
-
-  buffer[0] = '\0';
-  strcat(buffer, "RNTO ");
-  param = strtok(NULL, "\n");
-  strcat(buffer, param);
-  strcat(buffer, "\n");
-
-  send(config.control_fd, buffer, strlen(buffer), 0);
-
-  if(config.debug)
-    printf("%s\n",buffer );
-
-
-
-
-  if(config.debug)
-    printf("%s\n",buffer );
 }
 
 
