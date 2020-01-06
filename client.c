@@ -501,6 +501,16 @@ void exec_ren(char* param)
 
   send(config.control_fd, buffer, strlen(buffer), 0);
 
+  /* reponse serveur */
+  char* response = malloc(SIZE_LINE_MAX);
+  int read_char;
+  read_char = read( config.control_fd, response, SIZE_LINE_MAX);
+  response[read_char]='\0';
+
+  if(config.debug)
+    printf("%s\n",response );
+
+
   buffer[0] = '\0';
   strcat(buffer, "RNTO ");
   param = strtok(NULL, "\n");
@@ -513,8 +523,7 @@ void exec_ren(char* param)
   send(config.control_fd, buffer, strlen(buffer), 0);
 
   /* reponse serveur */
-  char* response = malloc(SIZE_LINE_MAX);
-  int read_char;
+  response = malloc(SIZE_LINE_MAX);
   read_char = read( config.control_fd, response, SIZE_LINE_MAX);
   response[read_char]='\0';
 
@@ -534,19 +543,8 @@ void exec_del(char* param)
   char* buffer = malloc(SIZE_LINE_MAX);
 
   buffer[0] = '\0';
-  strcat(buffer, "RNFR ");
+  strcat(buffer, "DELE ");
   param = strtok(param, " ");
-  strcat(buffer, param);
-  strcat(buffer, "\n");
-
-  if(config.debug)
-    printf("%s\n",buffer );
-
-  send(config.control_fd, buffer, strlen(buffer), 0);
-
-  buffer[0] = '\0';
-  strcat(buffer, "RNTO ");
-  param = strtok(NULL, "\n");
   strcat(buffer, param);
   strcat(buffer, "\n");
 
