@@ -37,6 +37,11 @@ void exec_ciao();
 void exec_dir();
 
 void exec_ren(char* param);
+void exec_del(char* param);
+
+void exec_cd(char* param);
+void exec_mkd(char* param);
+void exec_rmd(char* param);
 
 struct config
 {
