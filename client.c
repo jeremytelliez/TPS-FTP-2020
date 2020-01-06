@@ -152,10 +152,13 @@ void exec_open(char* param)
       exit(EXIT_FAILURE);
   }
 
+
+
+  read_char = read( client_fd , buffer, SIZE_LINE_MAX);
+  buffer[read_char]='\0';
   if( config.debug)
     printf("%s ", buffer );
 
-  read( client_fd , buffer, SIZE_LINE_MAX);
   buffer = strtok(buffer," ");
 
   if(   buffer[0] == '2'
@@ -176,9 +179,10 @@ void exec_open(char* param)
     send(client_fd , response , strlen(response) , 0);
     free(response);
 
-    read( client_fd , buffer, SIZE_LINE_MAX);
-    if(config.debug)
-      printf("%s ",buffer );
+    read_char = read( client_fd , buffer, SIZE_LINE_MAX);
+    buffer[read_char]='\0';
+    if( config.debug)
+      printf("%s ", buffer );
 
     if(buffer[0] == '3')
     {
@@ -229,9 +233,9 @@ void exec_ciao()
   printf("--->%s",response);
 
   send( config.control_fd, response , strlen(response), 0);
+
   read_char = read( config.control_fd, buffer, SIZE_LINE_MAX);
   buffer[read_char] = '\0';
-
   if( config.debug)
     printf("%s\n",buffer );
 
@@ -360,7 +364,7 @@ int set_serv_active(char* cmd)
   send(config.control_fd , response , strlen(response) , 0 );
 
   read_char = read(config.control_fd , buffer, SIZE_LINE_MAX);
-  buffer[read_char+1] = '\0';
+  buffer[read_char] = '\0';
   if(config.debug)
     printf("%s\n",buffer );
 
@@ -410,7 +414,7 @@ void exec_dir()
   int i = 0;
   int ftp_fd = set_serv("LIST\n");
   read_char = read(config.control_fd , buffer, SIZE_LINE_MAX);
-  buffer[read_char+1] = '\0';
+  buffer[read_char] = '\0';
   if(config.debug)
     printf("%s\n",buffer );
 
@@ -425,7 +429,7 @@ void exec_dir()
   printf("Transfered %d bytes in %.2f second(s)\n", i, cpu_time_used);
 
   read_char = read(config.control_fd , buffer, SIZE_LINE_MAX);
-  buffer[read_char+1] = '\0';
+  buffer[read_char] = '\0';
   close(ftp_fd);
   if(config.debug)
     printf("%s\n",buffer );
@@ -453,10 +457,10 @@ void exec_show(char* param)
 
   int ftp_fd = set_serv(buffer);
 
-  /*read_char = read( config.control_fd, buffer, SIZE_LINE_MAX);
+  read_char = read( config.control_fd, buffer, SIZE_LINE_MAX);
   buffer[read_char]='\0';
   if(config.debug)
-    printf("%s\n",buffer );*/
+    printf("%s\n",buffer );
 
   start = clock();
   while( (read_char = read(ftp_fd , &filePart, 1)) == 1)
@@ -469,7 +473,7 @@ void exec_show(char* param)
   printf("Transfered %d bytes in %.2f second(s)\n",i,cpu_time_used);
 
   read_char = read(config.control_fd, buffer, SIZE_LINE_MAX);
-  buffer[read_char+1] = '\0';
+  buffer[read_char] = '\0';
   close(ftp_fd);
   if(config.debug)
     printf("%s\n",buffer );
