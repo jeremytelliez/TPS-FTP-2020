@@ -10,6 +10,7 @@ int main(void)
   config.control_fd = 0;
   config.debug = 0;
   config.passive = 0;
+  config.portdata = PORTDATA;
 
   printf("FTP client\n");
   printf("type \"help\" for manual\n");
@@ -123,6 +124,7 @@ void exec_open(char* param)
 
   struct sockaddr_in serv_address;
   int client_fd;
+  int read_char;
   char* buffer = malloc(SIZE_LINE_MAX); // buffer de reception de message
   char* response; // buffer d'envoi de message
 
@@ -193,7 +195,8 @@ void exec_open(char* param)
       send(client_fd, response, strlen(response), 0);
       free(response);
 
-      read( client_fd , buffer, SIZE_LINE_MAX);
+      read_char = read( client_fd , buffer, SIZE_LINE_MAX);
+      buffer[read_char] = '\0';
       if(config.debug)
         printf("%s ",buffer );
 
@@ -227,7 +230,7 @@ void exec_ciao()
 
   send( config.control_fd, response , strlen(response), 0);
   read_char = read( config.control_fd, buffer, SIZE_LINE_MAX);
-  buffer[read_char+1] = '\0';
+  buffer[read_char] = '\0';
 
   if( config.debug)
     printf("%s\n",buffer );
@@ -331,7 +334,7 @@ int set_serv_active(char* cmd)
   }
   address.sin_family = AF_INET;
   address.sin_addr.s_addr = INADDR_ANY;
-  address.sin_port = htons(PORTDATA);
+  address.sin_port = htons(config.portdata);
 
   // Forcefully attaching socket to the port 8080
   if( bind(server_fd, (struct sockaddr *)&address, sizeof(address))<0)
@@ -349,9 +352,9 @@ int set_serv_active(char* cmd)
   response[0] = '\0';
   strcat(response, "PORT 127,0,0,1,");
   char* temp = malloc(SIZE_LINE_MAX);
-  sprintf(temp,"%d,",(PORTDATA>>8)&0x00ff);
+  sprintf(temp,"%d,",(config.portdata>>8)&0x00ff);
   strcat(response,temp);
-  sprintf(temp,"%d\n",(PORTDATA)&0x00ff);
+  sprintf(temp,"%d\n",(config.portdata)&0x00ff);
   strcat(response,temp);
   printf("--->%s\n",response);
   send(config.control_fd , response , strlen(response) , 0 );
@@ -370,6 +373,7 @@ int set_serv_active(char* cmd)
       perror("accept");
       exit(EXIT_FAILURE);
   }
+  config.portdata++;
 
   return temp_fd;
 }
@@ -422,6 +426,7 @@ void exec_dir()
 
   read_char = read(config.control_fd , buffer, SIZE_LINE_MAX);
   buffer[read_char+1] = '\0';
+  close(ftp_fd);
   if(config.debug)
     printf("%s\n",buffer );
 }
@@ -465,6 +470,7 @@ void exec_show(char* param)
 
   read_char = read(config.control_fd, buffer, SIZE_LINE_MAX);
   buffer[read_char+1] = '\0';
+  close(ftp_fd);
   if(config.debug)
     printf("%s\n",buffer );
 }
