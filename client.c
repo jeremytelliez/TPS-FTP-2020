@@ -41,6 +41,12 @@ void exec_command(char* choice)
   else if( !strncmp( choice, "show",        SIZE_LINE_MAX))
     exec_show(strtok(NULL,"\n"));
 
+  else if( !strncmp( choice, "get",        SIZE_LINE_MAX))
+    exec_get(strtok(NULL,"\n"));
+
+  else if( !strncmp( choice, "send",        SIZE_LINE_MAX))
+    exec_send(strtok(NULL,"\n"));
+
   else if( !strncmp( choice, "ren",        SIZE_LINE_MAX))
     exec_ren(strtok(NULL,"\n"));
 
@@ -485,6 +491,110 @@ void exec_show(char* param)
 }
 
 
+void exec_get(char* param)
+{
+  if( !config.control_fd)
+  {
+    printf("Not Connected\n");
+    return;
+  }
+
+  char* buffer = malloc(SIZE_LINE_MAX);
+  char filePart;
+  int read_char;
+  clock_t start, end;
+  double cpu_time_used;
+  int i = 0;
+  buffer[0] = '\0';
+  strcat(buffer,"RETR ");
+  strcat(buffer,param);
+  strcat(buffer,"\n");
+
+  int ftp_fd = set_serv(buffer);
+
+  read_char = read( config.control_fd, buffer, SIZE_LINE_MAX);
+  buffer[read_char]='\0';
+  if(config.debug)
+    printf("%s\n",buffer );
+
+  FILE* local_fd;
+  if( (local_fd = fopen(param, "w+")) == NULL)
+  {
+    perror("Erreur ouverture fichier local");
+    return;
+  }
+
+  start = clock();
+  while( (read_char = read(ftp_fd , &filePart, 1)) == 1)
+  {
+    fprintf(local_fd, "%c", filePart);
+    i++;
+  }
+  end = clock();
+  cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+  printf("Transfered %d bytes in %.2f second(s)\n",i,cpu_time_used);
+
+  read_char = read(config.control_fd, buffer, SIZE_LINE_MAX);
+  buffer[read_char] = '\0';
+  close(ftp_fd);
+  fclose(local_fd);
+  if(config.debug)
+    printf("%s\n",buffer );
+}
+
+
+void exec_send(char* param)
+{
+  if( !config.control_fd)
+  {
+    printf("Not Connected\n");
+    return;
+  }
+
+  char* buffer = malloc(SIZE_LINE_MAX);
+  char filePart;
+  int read_char;
+  clock_t start, end;
+  double cpu_time_used;
+  int i = 0;
+  buffer[0] = '\0';
+  strcat(buffer,"STOR ");
+  strcat(buffer,param);
+  strcat(buffer,"\n");
+
+  int ftp_fd = set_serv(buffer);
+
+  read_char = read( config.control_fd, buffer, SIZE_LINE_MAX);
+  buffer[read_char]='\0';
+  if(config.debug)
+    printf("%s\n",buffer );
+
+  FILE* local_fd;
+  if( (local_fd = fopen(param, "r")) == NULL)
+  {
+    perror("Erreur ouverture fichier local");
+    return;
+  }
+
+  start = clock();
+  while( (read_char = fread(&filePart, 1, 1, local_fd)) == 1)
+  {
+    send(ftp_fd, &filePart, 1, 0);
+    i++;
+  }
+  close(ftp_fd);
+  end = clock();
+  cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+  printf("Transfered %d bytes in %.2f second(s)\n",i,cpu_time_used);
+
+  read_char = read(config.control_fd, buffer, SIZE_LINE_MAX);
+  buffer[read_char] = '\0';
+  fclose(local_fd);
+  if(config.debug)
+    printf("%s\n",buffer );
+}
+
+
 void exec_ren(char* param)
 {
   if( !config.control_fd)
@@ -691,6 +801,8 @@ void print_help()
   printf("dir                  : Show the list of file in current dir\n");
   printf("debug(on|off)        : Activate or deactivate the printing of server response\n");
   printf("passive(on|off)      : Activate or deactivate passive mode of FTP\n");
+  printf("get <file>)          : Download file\n");
+  printf("send <file>)         : Upload file\n");
   printf("show <FILE>          : Show the FILE content\n");
   printf("ren <file1> <file2>  : Rename file\n");
   printf("del <file>           : Delete file\n");
@@ -698,8 +810,6 @@ void print_help()
   printf("cd ..                : move to parent directory\n");
   printf("mkd <rep>            : create distant directory\n");
   printf("rmd <rep>            : delete distant directory\n");
-  //printf("get <FILE>     : Show the FILE content\n");
-  //printf("send <FILE>     : Show the FILE content\n");
   printf("ciao                 : Disconnect from server\n");
   printf("exit                 : Exit the program\n");
 }
