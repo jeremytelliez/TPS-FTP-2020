@@ -497,16 +497,19 @@ void exec_ren(char* param)
   strcat(buffer, param);
   strcat(buffer, "\n");
 
+  if(config.debug)
+    printf("%s\n",buffer );
+
   send(config.control_fd, buffer, strlen(buffer), 0);
 
+  /* reponse serveur */
+  char* response = malloc(SIZE_LINE_MAX);
+  int read_char;
+  read_char = read( config.control_fd, response, SIZE_LINE_MAX);
+  response[read_char]='\0';
+
   if(config.debug)
-    printf("%s\n",buffer );
-
-
-
-
-  if(config.debug)
-    printf("%s\n",buffer );
+    printf("%s\n",response );
 }
 
 
@@ -537,16 +540,19 @@ void exec_del(char* param)
   strcat(buffer, param);
   strcat(buffer, "\n");
 
+  if(config.debug)
+    printf("%s\n",buffer );
+
   send(config.control_fd, buffer, strlen(buffer), 0);
 
+  /* reponse serveur */
+  char* response = malloc(SIZE_LINE_MAX);
+  int read_char;
+  read_char = read( config.control_fd, response, SIZE_LINE_MAX);
+  response[read_char]='\0';
+
   if(config.debug)
-    printf("%s\n",buffer );
-
-
-
-
-  if(config.debug)
-    printf("%s\n",buffer );
+    printf("%s\n",response );
 }
 
 
@@ -587,6 +593,15 @@ void exec_cd(char* param)
     send(config.control_fd, buffer, strlen(buffer), 0);
   }
 
+  /* reponse serveur */
+  char* response = malloc(SIZE_LINE_MAX);
+  int read_char;
+  read_char = read( config.control_fd, response, SIZE_LINE_MAX);
+  response[read_char]='\0';
+
+  if(config.debug)
+    printf("%s\n",response );
+
 }
 
 
@@ -611,6 +626,15 @@ void exec_mkd(char* param)
     printf("%s\n",buffer );
 
   send(config.control_fd, buffer, strlen(buffer), 0);
+
+  /* reponse serveur */
+  char* response = malloc(SIZE_LINE_MAX);
+  int read_char;
+  read_char = read( config.control_fd, response, SIZE_LINE_MAX);
+  response[read_char]='\0';
+
+  if(config.debug)
+    printf("%s\n",response );
 }
 
 
@@ -635,6 +659,15 @@ void exec_rmd(char* param)
     printf("%s\n",buffer );
 
   send(config.control_fd, buffer, strlen(buffer), 0);
+
+  /* reponse serveur */
+  char* response = malloc(SIZE_LINE_MAX);
+  int read_char;
+  read_char = read( config.control_fd, response, SIZE_LINE_MAX);
+  response[read_char]='\0';
+
+  if(config.debug)
+    printf("%s\n",response );
 }
 
 
