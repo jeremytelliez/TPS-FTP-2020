@@ -36,6 +36,8 @@ void set_passive(int state);
 void exec_ciao();
 void exec_dir();
 
+void exec_ren(char* param);
+
 struct config
 {
   int debug;
